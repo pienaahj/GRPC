@@ -7,13 +7,19 @@ import "max.proto";
 import "primes.proto";
 import "sqrt.proto";
 import "sum.proto";
+import "subtraction.proto";
+import "factorial.proto";
+import "lcm.proto";
 
 option go_package = "github.com/pienaahj/grpc/calculator/proto";
 
 service CalculatorService {
   rpc Sum(SumRequest) returns (SumResponse);
+  rpc Subtract(SubtractionRequest) returns (SubtractionResponse);
   rpc Primes(PrimeRequest) returns (stream PrimeResponse);
+  rpc Factorial(FactorialRequest) returns (stream FactorialResponse);
   rpc Avg(stream AvgRequest) returns (AvgResponse);
+  rpc Lcm(stream LcmRequest) returns (LcmResponse);
   rpc Max(stream MaxRequest) returns (stream MaxResponse);
   rpc Sqrt(SqrtRequest) returns (SqrtResponse);
 }

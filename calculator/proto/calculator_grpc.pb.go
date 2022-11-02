@@ -23,8 +23,11 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CalculatorServiceClient interface {
 	Sum(ctx context.Context, in *SumRequest, opts ...grpc.CallOption) (*SumResponse, error)
+	Subtract(ctx context.Context, in *SubtractionRequest, opts ...grpc.CallOption) (*SubtractionResponse, error)
 	Primes(ctx context.Context, in *PrimeRequest, opts ...grpc.CallOption) (CalculatorService_PrimesClient, error)
+	Factorial(ctx context.Context, in *FactorialRequest, opts ...grpc.CallOption) (CalculatorService_FactorialClient, error)
 	Avg(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_AvgClient, error)
+	Lcm(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_LcmClient, error)
 	Max(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_MaxClient, error)
 	Sqrt(ctx context.Context, in *SqrtRequest, opts ...grpc.CallOption) (*SqrtResponse, error)
 }
@@ -40,6 +43,15 @@ func NewCalculatorServiceClient(cc grpc.ClientConnInterface) CalculatorServiceCl
 func (c *calculatorServiceClient) Sum(ctx context.Context, in *SumRequest, opts ...grpc.CallOption) (*SumResponse, error) {
 	out := new(SumResponse)
 	err := c.cc.Invoke(ctx, "/calculator.CalculatorService/Sum", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calculatorServiceClient) Subtract(ctx context.Context, in *SubtractionRequest, opts ...grpc.CallOption) (*SubtractionResponse, error) {
+	out := new(SubtractionResponse)
+	err := c.cc.Invoke(ctx, "/calculator.CalculatorService/Subtract", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -78,8 +90,40 @@ func (x *calculatorServicePrimesClient) Recv() (*PrimeResponse, error) {
 	return m, nil
 }
 
+func (c *calculatorServiceClient) Factorial(ctx context.Context, in *FactorialRequest, opts ...grpc.CallOption) (CalculatorService_FactorialClient, error) {
+	stream, err := c.cc.NewStream(ctx, &CalculatorService_ServiceDesc.Streams[1], "/calculator.CalculatorService/Factorial", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &calculatorServiceFactorialClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type CalculatorService_FactorialClient interface {
+	Recv() (*FactorialResponse, error)
+	grpc.ClientStream
+}
+
+type calculatorServiceFactorialClient struct {
+	grpc.ClientStream
+}
+
+func (x *calculatorServiceFactorialClient) Recv() (*FactorialResponse, error) {
+	m := new(FactorialResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *calculatorServiceClient) Avg(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_AvgClient, error) {
-	stream, err := c.cc.NewStream(ctx, &CalculatorService_ServiceDesc.Streams[1], "/calculator.CalculatorService/Avg", opts...)
+	stream, err := c.cc.NewStream(ctx, &CalculatorService_ServiceDesc.Streams[2], "/calculator.CalculatorService/Avg", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -112,8 +156,42 @@ func (x *calculatorServiceAvgClient) CloseAndRecv() (*AvgResponse, error) {
 	return m, nil
 }
 
+func (c *calculatorServiceClient) Lcm(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_LcmClient, error) {
+	stream, err := c.cc.NewStream(ctx, &CalculatorService_ServiceDesc.Streams[3], "/calculator.CalculatorService/Lcm", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &calculatorServiceLcmClient{stream}
+	return x, nil
+}
+
+type CalculatorService_LcmClient interface {
+	Send(*LcmRequest) error
+	CloseAndRecv() (*LcmResponse, error)
+	grpc.ClientStream
+}
+
+type calculatorServiceLcmClient struct {
+	grpc.ClientStream
+}
+
+func (x *calculatorServiceLcmClient) Send(m *LcmRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *calculatorServiceLcmClient) CloseAndRecv() (*LcmResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(LcmResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *calculatorServiceClient) Max(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_MaxClient, error) {
-	stream, err := c.cc.NewStream(ctx, &CalculatorService_ServiceDesc.Streams[2], "/calculator.CalculatorService/Max", opts...)
+	stream, err := c.cc.NewStream(ctx, &CalculatorService_ServiceDesc.Streams[4], "/calculator.CalculatorService/Max", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -157,8 +235,11 @@ func (c *calculatorServiceClient) Sqrt(ctx context.Context, in *SqrtRequest, opt
 // for forward compatibility
 type CalculatorServiceServer interface {
 	Sum(context.Context, *SumRequest) (*SumResponse, error)
+	Subtract(context.Context, *SubtractionRequest) (*SubtractionResponse, error)
 	Primes(*PrimeRequest, CalculatorService_PrimesServer) error
+	Factorial(*FactorialRequest, CalculatorService_FactorialServer) error
 	Avg(CalculatorService_AvgServer) error
+	Lcm(CalculatorService_LcmServer) error
 	Max(CalculatorService_MaxServer) error
 	Sqrt(context.Context, *SqrtRequest) (*SqrtResponse, error)
 	mustEmbedUnimplementedCalculatorServiceServer()
@@ -171,11 +252,20 @@ type UnimplementedCalculatorServiceServer struct {
 func (UnimplementedCalculatorServiceServer) Sum(context.Context, *SumRequest) (*SumResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Sum not implemented")
 }
+func (UnimplementedCalculatorServiceServer) Subtract(context.Context, *SubtractionRequest) (*SubtractionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Subtract not implemented")
+}
 func (UnimplementedCalculatorServiceServer) Primes(*PrimeRequest, CalculatorService_PrimesServer) error {
 	return status.Errorf(codes.Unimplemented, "method Primes not implemented")
 }
+func (UnimplementedCalculatorServiceServer) Factorial(*FactorialRequest, CalculatorService_FactorialServer) error {
+	return status.Errorf(codes.Unimplemented, "method Factorial not implemented")
+}
 func (UnimplementedCalculatorServiceServer) Avg(CalculatorService_AvgServer) error {
 	return status.Errorf(codes.Unimplemented, "method Avg not implemented")
+}
+func (UnimplementedCalculatorServiceServer) Lcm(CalculatorService_LcmServer) error {
+	return status.Errorf(codes.Unimplemented, "method Lcm not implemented")
 }
 func (UnimplementedCalculatorServiceServer) Max(CalculatorService_MaxServer) error {
 	return status.Errorf(codes.Unimplemented, "method Max not implemented")
@@ -214,6 +304,24 @@ func _CalculatorService_Sum_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CalculatorService_Subtract_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubtractionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CalculatorServiceServer).Subtract(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/calculator.CalculatorService/Subtract",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CalculatorServiceServer).Subtract(ctx, req.(*SubtractionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CalculatorService_Primes_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(PrimeRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -232,6 +340,27 @@ type calculatorServicePrimesServer struct {
 }
 
 func (x *calculatorServicePrimesServer) Send(m *PrimeResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _CalculatorService_Factorial_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(FactorialRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CalculatorServiceServer).Factorial(m, &calculatorServiceFactorialServer{stream})
+}
+
+type CalculatorService_FactorialServer interface {
+	Send(*FactorialResponse) error
+	grpc.ServerStream
+}
+
+type calculatorServiceFactorialServer struct {
+	grpc.ServerStream
+}
+
+func (x *calculatorServiceFactorialServer) Send(m *FactorialResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -255,6 +384,32 @@ func (x *calculatorServiceAvgServer) SendAndClose(m *AvgResponse) error {
 
 func (x *calculatorServiceAvgServer) Recv() (*AvgRequest, error) {
 	m := new(AvgRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _CalculatorService_Lcm_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(CalculatorServiceServer).Lcm(&calculatorServiceLcmServer{stream})
+}
+
+type CalculatorService_LcmServer interface {
+	SendAndClose(*LcmResponse) error
+	Recv() (*LcmRequest, error)
+	grpc.ServerStream
+}
+
+type calculatorServiceLcmServer struct {
+	grpc.ServerStream
+}
+
+func (x *calculatorServiceLcmServer) SendAndClose(m *LcmResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *calculatorServiceLcmServer) Recv() (*LcmRequest, error) {
+	m := new(LcmRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -317,6 +472,10 @@ var CalculatorService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CalculatorService_Sum_Handler,
 		},
 		{
+			MethodName: "Subtract",
+			Handler:    _CalculatorService_Subtract_Handler,
+		},
+		{
 			MethodName: "Sqrt",
 			Handler:    _CalculatorService_Sqrt_Handler,
 		},
@@ -328,8 +487,18 @@ var CalculatorService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "Factorial",
+			Handler:       _CalculatorService_Factorial_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "Avg",
 			Handler:       _CalculatorService_Avg_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "Lcm",
+			Handler:       _CalculatorService_Lcm_Handler,
 			ClientStreams: true,
 		},
 		{

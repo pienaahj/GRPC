@@ -1,0 +1,22 @@
+move to the base of the project -- here greet folder
+command : protoc
+argument 1 : -I=  (where to find the imports - here greet/proto)
+argument 2 : --go_out=.  --go_opt=module=github.com/pienaahj/grpc where the proto generated files should be written
+argument 3 : --go-grpc_out. --go_opt=module=github.com/pienaahj/grpc where the generated grpc file should be written 
+the opt tells protoc to replace the go module in the option section of the proto file with a . so here ./greet/proto
+
+argument 4 : the path from the base to the proto file -- here greet/proto/greet.proto 
+
+these will create greet.pb.go and greet_grpc.pb.go in the greet/proto folder 
+
+check that the package inside this file matches your folder name -- here greet
+
+copy command to generate.sh
+chmod 700 generate.sh
+run ./generate.sh from its folder:
+
+full command:
+protoc -I=greet/proto  --go_out=.  --go_opt=module=github.com/pienaahj/grpc --go-grpc_out. --go_opt=module=github.com/pienaahj/grpc greet/proto/greet.proto
+
+note:
+

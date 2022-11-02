@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package calculator;
+option go_package = "github.com/pienaahj/grpc/calculator/proto";
+
+message SubtractionRequest {
+  int32 first_number = 1;
+  int32 second_number = 2;
+}
+
+message SubtractionResponse {
+  int32 result = 1;
+}

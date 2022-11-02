@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package calculator;
+option go_package = "github.com/pienaahj/grpc/calculator/proto";
+
+message LcmRequest {
+  int32 number = 1;
+}
+
+message LcmResponse {
+  int32 result = 1;
+}
