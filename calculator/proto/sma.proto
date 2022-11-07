@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package calculator;
+option go_package = "github.com/pienaahj/grpc/calculator/proto";
+
+message SmaRequest {
+  int32 number = 1;
+}
+
+message SmaResponse {
+  double result = 1;
+}

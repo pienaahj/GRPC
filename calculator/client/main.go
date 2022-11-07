@@ -29,5 +29,6 @@ func main() {
 	// doSqrt(c, -2)
 	// doSubtraction(c)
 	// doFactorial(c)
-	doLcm(c)
+	// doLcm(c)
+	doSma(c)
 }

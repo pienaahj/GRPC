@@ -29,6 +29,7 @@ type CalculatorServiceClient interface {
 	Avg(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_AvgClient, error)
 	Lcm(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_LcmClient, error)
 	Max(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_MaxClient, error)
+	Sma(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_SmaClient, error)
 	Sqrt(ctx context.Context, in *SqrtRequest, opts ...grpc.CallOption) (*SqrtResponse, error)
 }
 
@@ -221,6 +222,37 @@ func (x *calculatorServiceMaxClient) Recv() (*MaxResponse, error) {
 	return m, nil
 }
 
+func (c *calculatorServiceClient) Sma(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_SmaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &CalculatorService_ServiceDesc.Streams[5], "/calculator.CalculatorService/Sma", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &calculatorServiceSmaClient{stream}
+	return x, nil
+}
+
+type CalculatorService_SmaClient interface {
+	Send(*SmaRequest) error
+	Recv() (*SmaResponse, error)
+	grpc.ClientStream
+}
+
+type calculatorServiceSmaClient struct {
+	grpc.ClientStream
+}
+
+func (x *calculatorServiceSmaClient) Send(m *SmaRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *calculatorServiceSmaClient) Recv() (*SmaResponse, error) {
+	m := new(SmaResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *calculatorServiceClient) Sqrt(ctx context.Context, in *SqrtRequest, opts ...grpc.CallOption) (*SqrtResponse, error) {
 	out := new(SqrtResponse)
 	err := c.cc.Invoke(ctx, "/calculator.CalculatorService/Sqrt", in, out, opts...)
@@ -241,6 +273,7 @@ type CalculatorServiceServer interface {
 	Avg(CalculatorService_AvgServer) error
 	Lcm(CalculatorService_LcmServer) error
 	Max(CalculatorService_MaxServer) error
+	Sma(CalculatorService_SmaServer) error
 	Sqrt(context.Context, *SqrtRequest) (*SqrtResponse, error)
 	mustEmbedUnimplementedCalculatorServiceServer()
 }
@@ -269,6 +302,9 @@ func (UnimplementedCalculatorServiceServer) Lcm(CalculatorService_LcmServer) err
 }
 func (UnimplementedCalculatorServiceServer) Max(CalculatorService_MaxServer) error {
 	return status.Errorf(codes.Unimplemented, "method Max not implemented")
+}
+func (UnimplementedCalculatorServiceServer) Sma(CalculatorService_SmaServer) error {
+	return status.Errorf(codes.Unimplemented, "method Sma not implemented")
 }
 func (UnimplementedCalculatorServiceServer) Sqrt(context.Context, *SqrtRequest) (*SqrtResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Sqrt not implemented")
@@ -442,6 +478,32 @@ func (x *calculatorServiceMaxServer) Recv() (*MaxRequest, error) {
 	return m, nil
 }
 
+func _CalculatorService_Sma_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(CalculatorServiceServer).Sma(&calculatorServiceSmaServer{stream})
+}
+
+type CalculatorService_SmaServer interface {
+	Send(*SmaResponse) error
+	Recv() (*SmaRequest, error)
+	grpc.ServerStream
+}
+
+type calculatorServiceSmaServer struct {
+	grpc.ServerStream
+}
+
+func (x *calculatorServiceSmaServer) Send(m *SmaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *calculatorServiceSmaServer) Recv() (*SmaRequest, error) {
+	m := new(SmaRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func _CalculatorService_Sqrt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SqrtRequest)
 	if err := dec(in); err != nil {
@@ -504,6 +566,12 @@ var CalculatorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Max",
 			Handler:       _CalculatorService_Max_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "Sma",
+			Handler:       _CalculatorService_Sma_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
