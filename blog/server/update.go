@@ -15,6 +15,7 @@ import (
 func (*Server) UpdateBlog(ctx context.Context, in *pb.Blog) (*emptypb.Empty, error) {
 	log.Printf("UpdateBlog was invoked with %v\n", in)
 
+	//  transform the id into an object id
 	oid, err := primitive.ObjectIDFromHex(in.Id)
 	if err != nil {
 		return nil, status.Errorf(
@@ -23,15 +24,17 @@ func (*Server) UpdateBlog(ctx context.Context, in *pb.Blog) (*emptypb.Empty, err
 		)
 	}
 
+	// create a new blog
 	data := &BlogItem{
 		AuthorID: in.AuthorId,
 		Title:    in.Title,
 		Content:  in.Content,
 	}
+	// and try to update it
 	res, err := collection.UpdateOne(
 		ctx,
-		bson.M{"_id": oid},
-		bson.M{"$set": data},
+		bson.M{"_id": oid},   //  filter
+		bson.M{"$set": data}, // data set
 	)
 
 	if err != nil {

@@ -22,7 +22,7 @@ func main() {
 
 	id := createBlog(c)
 	readBlog(c, id)
-	readBlog(c, "aNonExistingID")
+	// readBlog(c, "aNonExistingID")
 	updateBlog(c, id)
 	listBlog(c)
 	deleteBlog(c, id)
