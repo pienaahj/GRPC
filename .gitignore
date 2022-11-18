@@ -12,6 +12,9 @@
 
 # Security-related files
 ca.*
+*.config
+*.env
+*.yaml
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

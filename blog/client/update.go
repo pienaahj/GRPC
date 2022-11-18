@@ -9,6 +9,7 @@ import (
 
 func updateBlog(c pb.BlogServiceClient, id string) {
 	log.Println("---updateBlog was invoked---")
+	// create a new blog
 	newBlog := &pb.Blog{
 		Id:       id,
 		AuthorId: "Changed Author",
